@@ -1,0 +1,134 @@
+import numpy as np
+def train_dqn(env, agent, num_episodes=1000, max_t=100, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
+    """
+    训练DQN智能体
+    
+    :param env: 环境
+    :param agent: DQN智能体
+    :param num_episodes: 训练的episodes数量
+    :param max_t: 每个episode的最大步数
+    :param eps_start: 起始epsilon值
+    :param eps_end: 最小epsilon值
+    :param eps_decay: epsilon衰减率
+    :return: 所有episode的奖励
+    """
+    scores = []  # 每个episode的总奖励
+    eps = eps_start  # 初始epsilon值
+    
+    for i_episode in range(1, num_episodes+1):
+        state = env.reset()
+        score = 0
+        
+        for t in range(max_t):
+            # 对特定企业采取动作，其他企业随机决策
+            actions = np.zeros((env.num_firms, 1))
+            for firm_id in range(env.num_firms):
+                if firm_id == agent.firm_id:
+                    # 使用智能体策略
+                    firm_state = state[firm_id].reshape(1, -1)
+                    action = agent.act(firm_state, eps)
+                    actions[firm_id] = action
+                else:
+                    # 对其他企业采取随机策略
+                    actions[firm_id] = np.random.randint(1, 21)
+            
+            # 执行动作
+            next_state, rewards, done = env.step(actions)
+            
+            # 该企业的奖励
+            reward = rewards[agent.firm_id][0]
+            
+            # 保存经验并学习
+            agent.step(state[agent.firm_id].reshape(1, -1), actions[agent.firm_id], reward, next_state[agent.firm_id].reshape(1, -1), done)
+            
+            # 更新状态和奖励
+            state = next_state
+            score += reward
+            
+            if done:
+                break
+        
+        # 更新epsilon
+        eps = max(eps_end, eps_decay * eps)
+        
+        # 记录分数
+        scores.append(score)
+        
+        # 输出进度
+        if i_episode % 100 == 0:
+            print(f'Episode {i_episode}/{num_episodes} | Average Score: {np.mean(scores[-100:]):.2f} | Epsilon: {eps:.4f}')
+        
+        # 每隔一定episode保存模型
+        if i_episode % 500 == 0:
+            agent.save(f'models/dqn_agent_firm_{agent.firm_id}_episode_{i_episode}.pth')
+    
+    # 训练结束后保存最终模型
+    agent.save(f'models/dqn_agent_firm_{agent.firm_id}_final.pth')
+    
+    return scores
+
+def test_agent(env, agent, num_episodes=10):
+    """
+    测试训练好的DQN智能体
+    
+    :param env: 环境
+    :param agent: 训练好的DQN智能体
+    :param num_episodes: 测试的episodes数量
+    :return: 所有episode的奖励和详细信息
+    """
+    scores = []
+    inventory_history = []
+    orders_history = []
+    demand_history = []
+    satisfied_demand_history = []
+    
+    for i_episode in range(1, num_episodes+1):
+        state = env.reset()
+        score = 0
+        episode_inventory = []
+        episode_orders = []
+        episode_demand = []
+        episode_satisfied_demand = []
+        
+        for t in range(env.max_steps):
+            # 对特定企业采取动作，其他企业随机决策
+            actions = np.zeros((env.num_firms, 1))
+            for firm_id in range(env.num_firms):
+                if firm_id == agent.firm_id:
+                    # 使用智能体策略，不使用探索
+                    firm_state = state[firm_id].reshape(1, -1)
+                    action = agent.act(firm_state, epsilon=0.0)
+                    actions[firm_id] = action
+                else:
+                    # 对其他企业采取随机策略
+                    actions[firm_id] = np.random.randint(1, 21)
+            
+            # 执行动作
+            next_state, rewards, done = env.step(actions)
+            
+            # 记录关键指标
+            episode_inventory.append(env.inventory[agent.firm_id][0])
+            episode_orders.append(actions[agent.firm_id][0])
+            episode_demand.append(env.demand[agent.firm_id][0])
+            episode_satisfied_demand.append(env.satisfied_demand[agent.firm_id][0])
+            
+            # 该企业的奖励
+            reward = rewards[agent.firm_id][0]
+            score += reward
+            
+            # 更新状态
+            state = next_state
+            
+            if done:
+                break
+        
+        # 记录分数和历史数据
+        scores.append(score)
+        inventory_history.append(episode_inventory)
+        orders_history.append(episode_orders)
+        demand_history.append(episode_demand)
+        satisfied_demand_history.append(episode_satisfied_demand)
+        
+        print(f'Test Episode {i_episode}/{num_episodes} | Score: {score:.2f}')
+    
+    return scores, inventory_history, orders_history, demand_history, satisfied_demand_history
