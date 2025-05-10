@@ -10,7 +10,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='DQN训练和测试')
     parser.add_argument('--model', type=str, default='DuelingDQN', help='model name')
     parser.add_argument('--num_firms', type=int, default=3, help='企业数量')
-    parser.add_argument('--num_episodes', type=int, default=5000, help='训练的episode数量')
+    parser.add_argument('--num_episodes', type=int, default=3000, help='训练的episode数量')
     parser.add_argument('--max_steps', type=int, default=100, help='每个episode的最大步数')
     parser.add_argument('--eps_start', type=float, default=1.0, help='起始epsilon值')
     parser.add_argument('--eps_end', type=float, default=0.01, help='最小epsilon值')
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     args.model_dir = model_dir
     os.makedirs(model_dir, exist_ok=True)
     os.makedirs(fig_dir, exist_ok=True)
-    plt.rcParams['font.sans-serif'] = ['SimHei']  # 指定中文字体
+
     plt.rcParams['axes.unicode_minus'] = False  # 绘图显示负号
     plt.rcParams['font.size'] = 20  # 设置全局字体大小为14
     # 初始化环境参数
