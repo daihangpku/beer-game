@@ -52,7 +52,7 @@ class Env:
 
     def _generate_demand(self):
         """
-        根据规则生成每个企业的需求。
+        根据规则生成每个企业（收到的）的需求。
         最下游企业的需求遵循泊松分布，其他企业的需求等于下游企业的订单量。
         """
         demand = np.zeros((self.num_firms, 1))
@@ -69,7 +69,7 @@ class Env:
         """
         执行一个时间步的仿真，根据给定的行动 (每个企业的订单量) 更新环境状态。
         
-        :param actions: 每个企业的订单量 (shape: (num_firms, 1))，即每个智能体的行动
+        :param actions: 每个企业(向上游）的订单量 (shape: (num_firms, 1))，即每个智能体的行动
         :return: next_state, reward, done
         """
         self.orders = actions  # 更新订单量

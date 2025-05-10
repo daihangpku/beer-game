@@ -1,73 +1,117 @@
 import numpy as np
 import matplotlib.pyplot as plt
-def plot_training_results(scores, window_size=100):
+
+def plot_training_results(scores, fig_dir, window_size=100):
     """
-    绘制训练结果
+    Plot training results
     
-    :param scores: 每个episode的奖励
-    :param window_size: 移动平均窗口大小
+    :param scores: Rewards for each episode
+    :param fig_dir: Directory to save the plots
+    :param window_size: Window size for moving average
     """
-    # 计算移动平均
+    # Calculate moving average
     def moving_average(data, window_size):
         return [np.mean(data[max(0, i-window_size):i+1]) for i in range(len(data))]
     
     avg_scores = moving_average(scores, window_size)
     
+    # Plot original rewards and moving average
     plt.figure(figsize=(10, 6))
-    plt.plot(np.arange(len(scores)), scores, alpha=0.3, label='原始奖励')
-    plt.plot(np.arange(len(avg_scores)), avg_scores, label=f'{window_size}个episode的移动平均')
-    plt.title('DQN训练过程中的奖励')
+    plt.plot(np.arange(len(scores)), scores, alpha=0.3, label='Original Rewards')
+    plt.plot(np.arange(len(avg_scores)), avg_scores, label=f'Moving Average ({window_size} episodes)')
+    plt.title('Training Rewards')
     plt.xlabel('Episode')
-    plt.ylabel('奖励')
+    plt.ylabel('Reward')
     plt.legend()
-    plt.savefig('figures/training_rewards.png')
+    plt.savefig(f'{fig_dir}/training_rewards.png')
+    plt.close()
+    
+    # Plot rewards focusing on values greater than 0
+    plt.figure(figsize=(10, 6))
+    plt.plot(np.arange(len(scores)), scores, alpha=0.3, label='Original Rewards')
+    plt.plot(np.arange(len(avg_scores)), avg_scores, label=f'Moving Average ({window_size} episodes)')
+    plt.title('Rewards Focused on Positive Values')
+    plt.xlabel('Episode')
+    plt.ylabel('Reward')
+    plt.ylim(0, max(max(scores), max(avg_scores)) * 1.1)  # Focus on positive values
+    plt.legend()
+    plt.savefig(f'{fig_dir}/positive_rewards_focus.png')
     plt.close()
 
-def plot_test_results(scores, inventory_history, orders_history, demand_history, satisfied_demand_history):
+def plot_test_results(scores, inventory_history, orders_history, demand_history, satisfied_demand_history, fig_dir, name="final"):
     """
-    绘制测试结果
+    Plot test results
     
-    :param scores: 每个episode的奖励
-    :param inventory_history: 每个episode的库存历史
-    :param orders_history: 每个episode的订单历史
-    :param demand_history: 每个episode的需求历史
-    :param satisfied_demand_history: 每个episode的满足需求历史
+    :param scores: Rewards for each episode
+    :param inventory_history: Inventory history for each episode
+    :param orders_history: Orders history for each episode
+    :param demand_history: Demand history for each episode
+    :param satisfied_demand_history: Satisfied demand history for each episode
+    :param fig_dir: Directory to save the plots
+    :param name: Suffix for the plot file name
     """
-    # 计算平均值，用于绘图
+    # Calculate mean and variance
+    mean_score = np.mean(scores)
+    variance_score = np.var(scores)
+    print(f"Test Results - Mean Reward: {mean_score:.2f}, Reward Variance: {variance_score:.2f}")
+    
+    # Calculate averages for plotting
     avg_inventory = np.mean(inventory_history, axis=0)
     avg_orders = np.mean(orders_history, axis=0)
     avg_demand = np.mean(demand_history, axis=0)
     avg_satisfied_demand = np.mean(satisfied_demand_history, axis=0)
     
-    # 创建图表
+    # Create subplots
     fig, axs = plt.subplots(2, 2, figsize=(14, 10))
     
-    # 库存图表
+    # Inventory plot
     axs[0, 0].plot(avg_inventory)
-    axs[0, 0].set_title('平均库存')
-    axs[0, 0].set_xlabel('时间步')
-    axs[0, 0].set_ylabel('库存量')
+    axs[0, 0].set_title('Average Inventory')
+    axs[0, 0].set_xlabel('Time Step')
+    axs[0, 0].set_ylabel('Inventory')
     
-    # 订单图表
+    # Orders plot
     axs[0, 1].plot(avg_orders)
-    axs[0, 1].set_title('平均订单量')
-    axs[0, 1].set_xlabel('时间步')
-    axs[0, 1].set_ylabel('订单量')
+    axs[0, 1].set_title('Average Orders')
+    axs[0, 1].set_xlabel('Time Step')
+    axs[0, 1].set_ylabel('Orders')
     
-    # 需求和满足需求图表
-    axs[1, 0].plot(avg_demand, label='需求')
-    axs[1, 0].plot(avg_satisfied_demand, label='满足的需求')
-    axs[1, 0].set_title('平均需求 vs 满足的需求')
-    axs[1, 0].set_xlabel('时间步')
-    axs[1, 0].set_ylabel('数量')
+    # Demand and satisfied demand plot
+    axs[1, 0].plot(avg_demand, label='Demand')
+    axs[1, 0].plot(avg_satisfied_demand, label='Satisfied Demand')
+    axs[1, 0].set_title('Average Demand vs Satisfied Demand')
+    axs[1, 0].set_xlabel('Time Step')
+    axs[1, 0].set_ylabel('Quantity')
     axs[1, 0].legend()
     
-    # 奖励柱状图
+    # Reward bar chart
     axs[1, 1].bar(range(len(scores)), scores)
-    axs[1, 1].set_title('测试episode奖励')
+    axs[1, 1].set_title('Test Episode Rewards')
     axs[1, 1].set_xlabel('Episode')
-    axs[1, 1].set_ylabel('总奖励')
+    axs[1, 1].set_ylabel('Total Reward')
     
     plt.tight_layout()
-    plt.savefig('figures/test_results.png')
+    plt.savefig(f'{fig_dir}/test_results_{name}.png')
+    plt.close()
+    return mean_score, variance_score
+
+def plot_mean_and_variance(idx, mean_values, variance_values, fig_dir, name="mean_variance"):
+    """
+    Plot mean and variance changes
+    
+    :param idx: Index for the x-axis
+    :param mean_values: List of mean values
+    :param variance_values: List of variance values
+    :param fig_dir: Directory to save the plots
+    :param name: Plot file name
+    """
+    plt.figure(figsize=(10, 6))
+    plt.plot(idx, mean_values, label='Mean', marker='o')
+    plt.plot(idx, variance_values, label='Variance', marker='x')
+    plt.title('Mean and Variance Changes')
+    plt.xlabel('Episode')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f'{fig_dir}/{name}.png')
     plt.close()

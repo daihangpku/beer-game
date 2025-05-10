@@ -1,5 +1,6 @@
 import numpy as np
-def train_dqn(env, agent, num_episodes=1000, max_t=100, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
+from plot_utils import plot_training_results, plot_test_results, plot_mean_and_variance
+def train_dqn(env, agent, args):
     """
     训练DQN智能体
     
@@ -12,9 +13,18 @@ def train_dqn(env, agent, num_episodes=1000, max_t=100, eps_start=1.0, eps_end=0
     :param eps_decay: epsilon衰减率
     :return: 所有episode的奖励
     """
+    num_episodes=args.num_episodes
+    max_t=args.max_steps
+    eps_start=args.eps_start
+    eps_end=args.eps_end
+    eps_decay=args.eps_decay
+    model_dir=args.model_dir
+    fig_dir=args.fig_dir
     scores = []  # 每个episode的总奖励
+    mean = []
+    variance = []
+    idx = []
     eps = eps_start  # 初始epsilon值
-    
     for i_episode in range(1, num_episodes+1):
         state = env.reset()
         score = 0
@@ -60,14 +70,23 @@ def train_dqn(env, agent, num_episodes=1000, max_t=100, eps_start=1.0, eps_end=0
         
         # 每隔一定episode保存模型
         if i_episode % 500 == 0:
-            agent.save(f'models/dqn_agent_firm_{agent.firm_id}_episode_{i_episode}.pth')
-    
+            agent.save(f'{model_dir}/dqn_agent_firm_{agent.firm_id}_episode_{i_episode}.pth')
+            mean_score, variance_score = test_agent(env, agent, num_episodes=10, args=args, name=f'{i_episode}')
+            mean.append(mean_score)
+            variance.append(variance_score)
+            idx.append(i_episode)
     # 训练结束后保存最终模型
-    agent.save(f'models/dqn_agent_firm_{agent.firm_id}_final.pth')
+    agent.save(f'{model_dir}/dqn_agent_firm_{agent.firm_id}_final.pth')
+    plot_training_results(scores, fig_dir)
+    plot_mean_and_variance(idx, mean, variance,  fig_dir)
     
+    # 保存均值和方差
+    with open(f'{fig_dir}/mean_variance_log.txt', 'w') as log_file:
+        for i, (m, v) in enumerate(zip(mean, variance)):
+            log_file.write(f'Episode {idx[i]}: Mean: {m}, Variance: {v}\n')
     return scores
 
-def test_agent(env, agent, num_episodes=10):
+def test_agent(env, agent, num_episodes=10, args=None, name="final"):
     """
     测试训练好的DQN智能体
     
@@ -76,6 +95,8 @@ def test_agent(env, agent, num_episodes=10):
     :param num_episodes: 测试的episodes数量
     :return: 所有episode的奖励和详细信息
     """
+    fig_dir = args.fig_dir
+
     scores = []
     inventory_history = []
     orders_history = []
@@ -130,5 +151,5 @@ def test_agent(env, agent, num_episodes=10):
         satisfied_demand_history.append(episode_satisfied_demand)
         
         print(f'Test Episode {i_episode}/{num_episodes} | Score: {score:.2f}')
-    
-    return scores, inventory_history, orders_history, demand_history, satisfied_demand_history
+    mean_score, variance_score=plot_test_results(scores, inventory_history, orders_history, demand_history, satisfied_demand_history, fig_dir, name)
+    return mean_score, variance_score
