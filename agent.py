@@ -6,6 +6,7 @@ import random
 import os
 from network import QNetwork, ReplayBuffer, DuelingQNetwork, PrioritizedReplayBuffer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"using {device}")
 class DQNAgent:
     def __init__(self, state_size, action_size, firm_id, max_order=20, buffer_size=10000, batch_size=64, gamma=0.99, 
                  learning_rate=1e-3, tau=1e-3, update_every=4):

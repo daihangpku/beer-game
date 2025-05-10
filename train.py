@@ -1,5 +1,6 @@
 import numpy as np
 from plot_utils import plot_training_results, plot_test_results, plot_mean_and_variance
+from tqdm import tqdm
 def train_dqn(env, agent, args):
     """
     训练DQN智能体
@@ -25,7 +26,7 @@ def train_dqn(env, agent, args):
     variance = []
     idx = []
     eps = eps_start  # 初始epsilon值
-    for i_episode in range(1, num_episodes+1):
+    for i_episode in tqdm(range(1, num_episodes + 1), desc="Training Episodes"):
         state = env.reset()
         score = 0
         
@@ -65,8 +66,8 @@ def train_dqn(env, agent, args):
         scores.append(score)
         
         # 输出进度
-        if i_episode % 100 == 0:
-            print(f'Episode {i_episode}/{num_episodes} | Average Score: {np.mean(scores[-100:]):.2f} | Epsilon: {eps:.4f}')
+        # if i_episode % 100 == 0:
+        #     print(f'Episode {i_episode}/{num_episodes} | Average Score: {np.mean(scores[-100:]):.2f} | Epsilon: {eps:.4f}')
         
         # 每隔一定episode保存模型
         if i_episode % 500 == 0:
@@ -104,7 +105,7 @@ def test_agent(env, agent, num_episodes=10, args=None, name="final"):
     demand_history = []
     satisfied_demand_history = []
     
-    for i_episode in range(1, num_episodes+1):
+    for i_episode in tqdm(range(1, num_episodes + 1), desc="Testing Episodes"):
         state = env.reset()
         score = 0
         episode_inventory = []
@@ -151,6 +152,6 @@ def test_agent(env, agent, num_episodes=10, args=None, name="final"):
         demand_history.append(episode_demand)
         satisfied_demand_history.append(episode_satisfied_demand)
         
-        print(f'Test Episode {i_episode}/{num_episodes} | Score: {score:.2f}')
+        #print(f'Test Episode {i_episode}/{num_episodes} | Score: {score:.2f}')
     mean_score, variance_score=plot_test_results(scores, inventory_history, orders_history, demand_history, satisfied_demand_history, fig_dir, name)
     return mean_score, variance_score

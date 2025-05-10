@@ -9,4 +9,5 @@ pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https
 pip install opencv-python
 pip install numpy
 pip install matplotlib
+pip install tqdm
 ```

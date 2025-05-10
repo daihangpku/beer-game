@@ -18,15 +18,14 @@ if __name__ == "__main__":
     parser.add_argument('--state_size', type=int, default=3, help='每个企业的状态维度')
     parser.add_argument('--action_size', type=int, default=20, help='最大订单量')
     parser.add_argument('--firm_id', type=int, default=1, help='选择的企业ID进行训练')
-    parser.add_argument('--dir', type=str, default='DuelingDQN', help='保存模型和图表的目录')
     parser.add_argument('--model_dir', type=str, default='models', help='保存模型的目录')
     parser.add_argument('--fig_dir', type=str, default='figures', help='保存图表的目录')
     parser.add_argument('--test_only', action='store_true', help='')
     args = parser.parse_args()
     # 创建保存模型和图表的目录
-    fig_dir = f'figures/{args.dir}'
+    fig_dir = f'figures/{args.model}'
     args.fig_dir = fig_dir
-    model_dir = f'models/{args.dir}'
+    model_dir = f'models/{args.model}'
     args.model_dir = model_dir
     os.makedirs(model_dir, exist_ok=True)
     os.makedirs(fig_dir, exist_ok=True)
