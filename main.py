@@ -31,7 +31,7 @@ if __name__ == "__main__":
     os.makedirs(fig_dir, exist_ok=True)
 
     plt.rcParams['axes.unicode_minus'] = False  # 绘图显示负号
-    plt.rcParams['font.size'] = 18  # 设置全局字体大小为14
+    plt.rcParams['font.size'] = 18 
     # 初始化环境参数
     num_firms = 3  # 假设有3个企业
     p = [10, 9, 8]  # 价格列表
@@ -44,8 +44,7 @@ if __name__ == "__main__":
     # 创建仿真环境
     env = Env(num_firms, p, h, c, initial_inventory, poisson_lambda, max_steps)
     
-    # 为第二个企业创建DQN智能体
-    firm_id = 1  # 选择第二个企业进行训练
+    firm_id = 0  # 选择第二个企业进行训练
     state_size = 3  # 每个企业的状态维度：订单、满足的需求和库存
     action_size = 20  # 假设最大订单量为20
     if args.model == 'DuelingDQN':
