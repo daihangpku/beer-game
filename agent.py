@@ -5,6 +5,7 @@ import torch.optim as optim
 import random
 import os
 from network import QNetwork, ReplayBuffer, DuelingQNetwork, PrioritizedReplayBuffer
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class DQNAgent:
     def __init__(self, state_size, action_size, firm_id, max_order=20, buffer_size=10000, batch_size=64, gamma=0.99, 
                  learning_rate=1e-3, tau=1e-3, update_every=4):
@@ -33,8 +34,8 @@ class DQNAgent:
         self.learning_step = 0
         
         # 创建Q网络和目标网络
-        self.q_network = QNetwork(state_size, action_size)
-        self.target_network = QNetwork(state_size, action_size)
+        self.q_network = QNetwork(state_size, action_size).to(device)
+        self.target_network = QNetwork(state_size, action_size).to(device)
         self.target_network.load_state_dict(self.q_network.state_dict())
         
         # 设置优化器
@@ -74,7 +75,7 @@ class DQNAgent:
         :return: 选择的动作
         """
         # 从3维numpy数组转换为1维向量
-        state = torch.from_numpy(state.flatten()).float().unsqueeze(0)
+        state = torch.from_numpy(state.flatten()).float().unsqueeze(0).to(device)
         
         # 切换到评估模式
         self.q_network.eval()
@@ -98,11 +99,11 @@ class DQNAgent:
         states, actions, rewards, next_states, dones = zip(*experiences)
         
         # 转换为torch张量
-        states = torch.from_numpy(np.vstack([s.flatten() for s in states])).float()
-        actions = torch.from_numpy(np.vstack([a-1 for a in actions])).long()  # -1 因为我们的动作从1开始，但索引从0开始
-        rewards = torch.from_numpy(np.vstack(rewards)).float()
-        next_states = torch.from_numpy(np.vstack([ns.flatten() for ns in next_states])).float()
-        dones = torch.from_numpy(np.vstack(dones).astype(np.uint8)).float()
+        states = torch.from_numpy(np.vstack([s.flatten() for s in states])).float().to(device)
+        actions = torch.from_numpy(np.vstack([a-1 for a in actions])).long().to(device)  # -1 因为我们的动作从1开始，但索引从0开始
+        rewards = torch.from_numpy(np.vstack(rewards)).float().to(device)
+        next_states = torch.from_numpy(np.vstack([ns.flatten() for ns in next_states])).float().to(device)
+        dones = torch.from_numpy(np.vstack(dones).astype(np.uint8)).float().to(device)
         
         # 从目标网络获取下一个状态的最大预测Q值
         Q_targets_next = self.target_network(next_states).detach().max(1)[0].unsqueeze(1)
@@ -195,8 +196,8 @@ class DuelingDQNAgent:
         self.learning_step = 0
         
         # 创建 Dueling Q 网络和目标网络
-        self.q_network = DuelingQNetwork(state_size, action_size)
-        self.target_network = DuelingQNetwork(state_size, action_size)
+        self.q_network = DuelingQNetwork(state_size, action_size).to(device)
+        self.target_network = DuelingQNetwork(state_size, action_size).to(device)
         self.target_network.load_state_dict(self.q_network.state_dict())
         
         # 设置优化器
@@ -235,7 +236,7 @@ class DuelingDQNAgent:
         :param epsilon: epsilon-贪婪策略参数
         :return: 选择的动作
         """
-        state = torch.from_numpy(state.flatten()).float().unsqueeze(0)
+        state = torch.from_numpy(state.flatten()).float().unsqueeze(0).to(device)
         
         # 切换到评估模式
         self.q_network.eval()
@@ -259,12 +260,12 @@ class DuelingDQNAgent:
         states, actions, rewards, next_states, dones, indices, weights = experiences
 
         # 转换为 torch 张量
-        states = torch.from_numpy(np.vstack([s.flatten() for s in states])).float()
-        actions = torch.from_numpy(np.vstack([a - 1 for a in actions])).long()  # -1 因为动作从1开始
-        rewards = torch.from_numpy(np.vstack(rewards)).float()
-        next_states = torch.from_numpy(np.vstack([ns.flatten() for ns in next_states])).float()
-        dones = torch.from_numpy(np.vstack(dones).astype(np.uint8)).float()
-        weights = torch.from_numpy(np.vstack(weights)).float()
+        states = torch.from_numpy(np.vstack([s.flatten() for s in states])).float().to(device)
+        actions = torch.from_numpy(np.vstack([a - 1 for a in actions])).long().to(device)  # -1 因为动作从1开始
+        rewards = torch.from_numpy(np.vstack(rewards)).float().to(device)
+        next_states = torch.from_numpy(np.vstack([ns.flatten() for ns in next_states])).float().to(device)
+        dones = torch.from_numpy(np.vstack(dones).astype(np.uint8)).float().to(device)
+        weights = torch.from_numpy(np.vstack(weights)).float().to(device)
 
         # 从目标网络获取下一个状态的最大预测 Q 值
         Q_targets_next = self.target_network(next_states).detach().max(1)[0].unsqueeze(1)
