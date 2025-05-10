@@ -31,7 +31,7 @@ if __name__ == "__main__":
     os.makedirs(fig_dir, exist_ok=True)
 
     plt.rcParams['axes.unicode_minus'] = False  # 绘图显示负号
-    plt.rcParams['font.size'] = 20  # 设置全局字体大小为14
+    plt.rcParams['font.size'] = 18  # 设置全局字体大小为14
     # 初始化环境参数
     num_firms = 3  # 假设有3个企业
     p = [10, 9, 8]  # 价格列表
@@ -54,4 +54,4 @@ if __name__ == "__main__":
         agent = DQNAgent(state_size=state_size, action_size=action_size, firm_id=firm_id, max_order=action_size)
     scores = train_dqn(env, agent, args)
 
-    test_agent(env, agent, num_episodes=10, args=args)
+    #test_agent(env, agent, num_episodes=10, args=args)
