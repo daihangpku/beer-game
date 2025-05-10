@@ -71,7 +71,8 @@ def train_dqn(env, agent, args):
         # 每隔一定episode保存模型
         if i_episode % 500 == 0:
             agent.save(f'{model_dir}/dqn_agent_firm_{agent.firm_id}_episode_{i_episode}.pth')
-            mean_score, variance_score = test_agent(env, agent, num_episodes=10, args=args, name=f'{i_episode}')
+        if i_episode % 100 == 0:
+            mean_score, variance_score = test_agent(env, agent, num_episodes=100, args=args, name=f'{i_episode}')
             mean.append(mean_score)
             variance.append(variance_score)
             idx.append(i_episode)
